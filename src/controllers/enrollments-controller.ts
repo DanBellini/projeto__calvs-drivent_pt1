@@ -17,10 +17,13 @@ export async function getEnrollmentByUser(req: AuthenticatedRequest, res: Respon
 
 export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, res: Response) {
   try {
-    await enrollmentsService.createOrUpdateEnrollmentWithAddress({
+    const result = await enrollmentsService.createOrUpdateEnrollmentWithAddress({
       ...req.body,
       userId: req.userId,
     });
+    if(!result){
+      return res.sendStatus(httpStatus.BAD_REQUEST);
+    }
 
     return res.sendStatus(httpStatus.OK);
   } catch (error) {
@@ -31,6 +34,9 @@ export async function postCreateOrUpdateEnrollment(req: AuthenticatedRequest, re
 export async function getAddressFromCEP(req: AuthenticatedRequest, res: Response) {
   const { cep } = req.query as Record<string, string>;
 
+  if(cep.length < 8 || cep.length > 9){
+    return res.send(httpStatus.NO_CONTENT);
+  }
   try {
     const address = await enrollmentsService.getAddressFromCEP(cep);
     res.status(httpStatus.OK).send(address);
